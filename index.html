@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>中药粉末显微鉴别系统</title>
+    <link rel="stylesheet" href="./src/ui/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">微</span>
+        <div>
+          <h1>中药粉末显微鉴别系统</h1>
+          <p>GPU 着色器特征识别 · 药典特征表比对 · 掺伪分析</p>
+        </div>
+      </div>
+      <div class="topbar-meta">
+        <span id="gpuStatus" class="chip chip-warn">GPU 初始化中…</span>
+        <span class="chip" id="throughputChip">30 张/2 分钟：待测</span>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="panel left-panel">
+        <section class="card">
+          <h2>样品图像</h2>
+          <label class="file-btn">
+            <input type="file" id="fileInput" accept="image/*" multiple />
+            <span>导入显微照片（可多选）</span>
+          </label>
+          <div class="hint">支持 jpg/png；系统自动等比缩放到 1024 工作分辨率</div>
+          <div class="scale-row">
+            <label>标尺 <input type="number" id="scaleInput" value="0.5" step="0.05" min="0.05" /> μm/px</label>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>合成测试图（按药典形态绘制）</h2>
+          <label>单味药
+            <select id="drugSelect"></select>
+          </label>
+          <label class="check"><input type="checkbox" id="mixtureToggle" /> 双味掺伪样品</label>
+          <label>第二味
+            <select id="drugSelectB"></select>
+          </label>
+          <label>染色预设
+            <select id="stainSelect">
+              <option value="random">随机（模拟换人拍摄）</option>
+            </select>
+          </label>
+          <label>随机种子 <input type="number" id="seedInput" value="20261120" /></label>
+          <div class="btn-row">
+            <button id="genBtn" class="primary">生成测试图</button>
+            <button id="genBatchBtn">批量 30 张</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>识别参数</h2>
+          <label>全局分割阈值 <input type="range" id="threshRange" min="0.15" max="0.6" step="0.01" value="0.40" /><span id="threshVal">0.40</span></label>
+          <label>边缘阈值 <input type="range" id="edgeRange" min="0.1" max="0.6" step="0.01" value="0.32" /><span id="edgeVal">0.32</span></label>
+          <label>最小目标(px²) <input type="range" id="minAreaRange" min="8" max="200" step="8" value="40" /><span id="minAreaVal">40</span></label>
+          <button id="rerunBtn">按新参数重跑当前图</button>
+        </section>
+
+        <section class="card">
+          <h2>批量评测（90% 准确率 / 2 分钟）</h2>
+          <div class="btn-row">
+            <button id="evalBtn" class="primary">运行 30 张评测</button>
+            <button id="evalStressBtn">60 张压力测试</button>
+          </div>
+          <div id="evalSummary" class="eval-summary">尚未运行</div>
+        </section>
+      </aside>
+
+      <section class="panel center-panel">
+        <div class="canvas-toolbar">
+          <div id="imageTabs" class="tabs"></div>
+          <div class="toolbar-actions">
+            <button id="undoBtn" disabled>↶ 撤销</button>
+            <button id="redoBtn" disabled>↷ 重做</button>
+            <button id="toggleLabelsBtn">隐藏标注</button>
+          </div>
+        </div>
+        <div class="canvas-wrap" id="canvasWrap">
+          <canvas id="glCanvas" width="1024" height="1024" class="compute-canvas"></canvas>
+          <canvas id="displayCanvas" width="1024" height="1024"></canvas>
+          <canvas id="overlayCanvas" width="1024" height="1024"></canvas>
+          <div class="empty-hint" id="emptyHint">导入照片或生成合成测试图后开始鉴别</div>
+        </div>
+        <div class="status-bar">
+          <span id="statusText">就绪</span>
+          <span id="timingText"></span>
+        </div>
+      </section>
+
+      <aside class="panel right-panel">
+        <section class="card">
+          <h2>鉴别结论</h2>
+          <div id="mixtureBox" class="mixture-box hidden"></div>
+          <ol id="matchList" class="match-list"></ol>
+        </section>
+        <section class="card">
+          <h2>特征计数与测量</h2>
+          <table class="count-table" id="countTable"></table>
+        </section>
+        <section class="card">
+          <h2>目标明细（点击图上目标联动）</h2>
+          <div id="objectList" class="object-list"></div>
+        </section>
+        <section class="card">
+          <h2>判定依据</h2>
+          <div id="evidenceBox" class="evidence-box">选择上方药材查看依据</div>
+        </section>
+      </aside>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+    <script type="module" src="./src/ui/main.ts"></script>
+  </body>
+</html>
